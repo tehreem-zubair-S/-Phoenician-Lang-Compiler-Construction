@@ -1,0 +1,14 @@
+𐤁𐤍𐤉𐤕 Person {
+    𐤐𐤕𐤇 𐤍 age;
+
+    𐤐𐤕𐤇 𐤄𐤉𐤄(𐤍 a) {
+        age 𐤔 a;
+    }
+
+    𐤐𐤕𐤇 𐤐𐤏𐤋 getAge() 𐤍 {
+        𐤅 age;
+    }
+}
+
+Person p 𐤔 𐤀𐤁𐤍 Person(25);
+𐤇(p.getAge());

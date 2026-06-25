@@ -1,0 +1,9 @@
+𐤆 𐤍 n 𐤔 5;
+𐤆 𐤍 result 𐤔 1;
+
+𐤂 (n 𐤕 1) {
+    result 𐤔 result 𐤒 n;
+    n 𐤔 n 𐤑 1;
+}
+
+𐤇(result);
