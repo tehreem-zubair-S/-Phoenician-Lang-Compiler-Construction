@@ -6,15 +6,15 @@ from pathlib import Path
 import time
 
 try:
-    import anthropic
+    from google import genai
 except ImportError:
-    anthropic = None
+    genai = None
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 GENERATED_DIR = PROJECT_ROOT / "generated_tests"
 BUILD_DIR = PROJECT_ROOT / "build" / "auto_tester_classes"
 
-MODEL_NAME = "claude-sonnet-4-6"
+MODEL_NAME = "gemini-2.0-flash"
 MAX_FIX_ATTEMPTS = 3
 
 JAVAC_COMMAND = [
@@ -27,15 +27,6 @@ JAVAC_COMMAND = [
     "src/lexer/*.java",
     "src/parser/*.java",
 ]
-
-#PROGRAM_REQUESTS = [
-# "Create a factorial program using while loop. It should print 120.",
-# "Create a fibonacci-like iterative program that prints several values or the final value.",
-# "Create an if/else program that compares two numbers and prints the larger one.",
-# "Create a program using modulo to print whether a number is even or odd.",
-# "Create a small object/class program using Person, constructor, getAge, and print the method call.",
-#  ]
-
 
 LANGUAGE_GUIDE = r"""
 Generate Phoenician language programs for this compiler.
@@ -67,9 +58,9 @@ Important grammar rules:
 
 
 def configure_client():
-    if anthropic is None:
-        print("Missing dependency: anthropic")
-        print("Install it with: pip install anthropic")
+    if genai is None:
+        print("Missing dependency: google-genai")
+        print("Install it with: pip install google-genai")
         sys.exit(1)
 
     api_key = os.environ.get("API_KEY")
@@ -78,7 +69,7 @@ def configure_client():
         print('$env:API_KEY="YOUR_KEY_HERE"')
         sys.exit(1)
 
-    return anthropic.Anthropic(api_key=api_key)
+    return genai.Client(api_key=api_key)
 
 
 def compile_java_sources():
@@ -110,15 +101,14 @@ def ask_model(client, task, previous_code=None, compiler_output=None):
 
     for attempt in range(3):
         try:
-            message = client.messages.create(
+            response = client.models.generate_content(
                 model=MODEL_NAME,
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}]
+                contents=prompt
             )
-            return clean_code(message.content[0].text)
+            return clean_code(response.text)
         except Exception as e:
-            if "429" in str(e) or "rate_limit" in str(e).lower():
-                wait = 30 * (attempt + 1)
+            if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+                wait = 60 * (attempt + 1)
                 print(f"Rate limited. Waiting {wait}s...")
                 time.sleep(wait)
             else:
